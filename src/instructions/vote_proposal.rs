@@ -41,7 +41,7 @@ pub fn process_vote_instruction(
     }
 
     // --- 2. Load Proposal and Validate Conditions ---
-    let mut proposal = Proposal::from_account_info(proposal_account)?;
+    let proposal = Proposal::from_account_info(proposal_account)?;
     let clock = Clock::get()?;
 
     // Ensure the proposal is currently active for voting.

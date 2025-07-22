@@ -31,11 +31,11 @@ pub fn process_instruction(
     let (discriminator, data) = data.split_first().ok_or(ProgramError::InvalidAccountData)?;
 
     match MultisigInstructions::try_from(discriminator)? {
-        MultisigInstructions::InitializeMultisig => instructions::process_initialize_multisig_instructions(accounts, data)?,
-        MultisigInstructions::InitializeProposal => instructions::process_initialize_proposal_instructions(accounts, data)?,
-        MultisigInstructions::UpdateMultisig => instructions::process_update_proposal_instructions(accounts, data)?,
-        MultisigInstructions::Vote => instructions::process_vote_instructions(accounts, data)?,
-        MultisigInstructions::CloseProposal => instructions::process_close_proposal_instructions(accounts, data)?,
+        MultisigInstructions::InitializeMultisig => instructions::process_initalize_multisig_instructions(accounts, data)?,
+        MultisigInstructions::InitializeProposal => instructions::process_initialize_proposal_instruction(accounts, data)?,
+        MultisigInstructions::UpdateMultisig => instructions::process_update_multisig_instruction(accounts, data)?,
+        MultisigInstructions::Vote => instructions::process_vote_instruction(accounts, data)?,
+        MultisigInstructions::CloseProposal => instructions::process_close_proposal_instruction(accounts, data)?,
     }
 
     Ok(())
