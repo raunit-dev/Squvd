@@ -11,25 +11,16 @@ use pinocchio_log::log;
 
 use crate::state::{Proposal, ProposalStatus, VoteState};
 
-/// Processes a member's vote on an active proposal.
-///
+/// Processes a member's vote on an active proposal
 /// This instruction validates the voter's eligibility, checks if the proposal is
 /// still active, and records the vote. It also updates a personal `VoteState`
-/// account for the voter to track their participation.
-///
-/// Accounts expected:
-/// 0. `[signer]`   The member who is casting the vote.
-/// 1. `[writable]` The proposal account to vote on.
-/// 2. `[writable]` The voter's `VoteState` PDA account.
-/// 3. `[]`         The System Program (for potential account creation).
-///
-/// Instruction data (`data`) expected:
+/// account for the voter to track their participation
+/// Instruction data (`data`) expected
 /// - 1 byte: The vote, where `1` = Yes and `0` = No.
 pub fn process_vote_instruction(
     accounts: &[AccountInfo],
     data: &[u8],
 ) -> ProgramResult {
-    // --- 1. Destructure Accounts ---
     let [voter_account, proposal_account, vote_state_account, system_program, ..] = accounts else {
         log!("Error: Not enough accounts provided. Expected 4.");
         return Err(ProgramError::NotEnoughAccountKeys);
@@ -40,7 +31,6 @@ pub fn process_vote_instruction(
         return Err(ProgramError::MissingRequiredSignature);
     }
 
-    // --- 2. Load Proposal and Validate Conditions ---
     let proposal = Proposal::from_account_info(proposal_account)?;
     let clock = Clock::get()?;
 
@@ -50,7 +40,7 @@ pub fn process_vote_instruction(
         return Err(ProgramError::InvalidAccountData);
     }
 
-    // Ensure the voting period has not expired.
+    // Ensure the voting period has not expired
     if clock.unix_timestamp as u64 > proposal.expiration_time {
         log!("Error: Voting has expired for this proposal.");
         // Optionally, update the status to Failed.
@@ -58,11 +48,14 @@ pub fn process_vote_instruction(
         return Err(ProgramError::InvalidAccountData);
     }
 
-    // --- 3. Authorize Voter and Record Vote ---
-    // Find the voter's position in the list of eligible voters.
+    // Find the voter's position in the list of eligible voters
     let voter_index = proposal.voter_keys
         .iter()
         .position(|&key| key == *voter_account.key());
+    //(writing it here for my understanding)
+    //position() takes a closure that returns true or false. 
+    //It applies this closure to each element of the iterator, and if one of them returns true, then position() returns [Some(index)]. 
+    //If all of them return false, it returns None.
 
     match voter_index {
         Some(index) => {
@@ -87,29 +80,30 @@ pub fn process_vote_instruction(
         }
     }
 
-    // --- 4. Create or Update Voter's Global VoteState PDA ---
     let (pda, bump) = pubkey::find_program_address(&[b"vote_state", voter_account.key().as_ref()], &crate::ID);
     if &pda != vote_state_account.key() {
         log!("Error: Provided VoteState account does not match the derived PDA.");
         return Err(ProgramError::InvalidArgument);
     }
 
-    // If the account owner is the system program, it hasn't been initialized yet.
+    // If the account owner is the system program, it hasn't been initialized yet
+    //It means its an simple account (simple user accounts thats why its owned by the system program like our wallet is owned by system program in solana)
     if vote_state_account.owner() == system_program.key() {
         log!("First-time voter detected. Creating VoteState account...");
 
         pinocchio_system::instructions::CreateAccount {
             from: voter_account,
             to: vote_state_account,
-            lamports: Rent::get()?.minimum_balance(VoteState::LEN), //
-            space: VoteState::LEN as u64, //
+            lamports: Rent::get()?.minimum_balance(VoteState::LEN),
+            space: VoteState::LEN as u64,
             owner: &crate::ID,
         }
         .invoke()?;
         
         // Initialize the new state account.
         let vote_state = VoteState::from_account_info(vote_state_account)?;
-        vote_state.is_authorized = true;
+        // vote_state.is_authorized = true;//if initializing the vote account for the first time its be authorized to true (for now there is no idea for false will implement it later)
+        // //Todo - will add a way to make authorized to false
         vote_state.total_votes = 1;
         vote_state.config_bump = bump;
 

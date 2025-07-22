@@ -8,7 +8,7 @@ pub struct Proposal {
     pub expiration_time: u64,     // When the proposal expires
     pub status: ProposalStatus,   // Current state of the proposal
     pub voter_keys: [Pubkey; 20], // Eligible voter public keys
-    pub votes: [u8; 20],          // 1 (yes), 0 (no), or 255 (not voted)
+    pub votes: [u8; 20],          // 1 (yes), 0 (no), or 255 (not voted) // 255 is the maximum value for a u8 often used as "not set" value
     pub created_at: u64,          // Timestamp of proposal creation
 }
 
@@ -32,7 +32,7 @@ impl Proposal {
 #[repr(u8)]
 #[derive(PartialEq)]
 pub enum ProposalStatus {
-    Draft = 0,     // Proposal created but not yet active
+    Draft = 0,     // Not Actually using it (will use it V2)
     Active = 1,    // Currently open for voting
     Failed = 2,    // Did not meet threshold or expired
     Succeeded = 3, // Met threshold and succeeded
