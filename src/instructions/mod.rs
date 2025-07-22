@@ -1,14 +1,15 @@
+use pinocchio::program_error::ProgramError;
+
 pub mod initialize_multisig;
 pub mod initialize_proposal;
 pub mod update_multisig;
-pub mod vote;
 pub mod close_proposal;
+pub mod vote_proposal;
 
 pub use initialize_multisig::*;
 pub use initialize_proposal::*;
-use pinocchio::program_error::ProgramError;
 pub use update_multisig::*;
-pub use vote::*;
+pub use vote_proposal::*;
 pub use close_proposal::*;
 
 pub enum MultisigInstructions {

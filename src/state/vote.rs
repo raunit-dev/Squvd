@@ -1,6 +1,5 @@
 use pinocchio::{
-    account_info::AccountInfo,
-    pubkey::Pubkey,
+    account_info::AccountInfo
 };
 
 #[repr(C)]
